@@ -10,6 +10,7 @@ import ChatMessages from '@/components/ChatMessages'
 import ChatRightDrawer from '@/components/ChatRightDrawer'
 import ImageModalCarousel from '@/components/ImageModalCarousel'
 import FileModal from '@/components/FileModal'
+import { Bell, PersonPlus, Inbox, EnvelopeOpen, Envelope, PeopleFill, PersonXFill, PersonCheckFill } from 'react-bootstrap-icons'
 
 export interface Message {
   id: string
@@ -34,6 +35,14 @@ export interface OnlineUser {
   lastSeen: Date
 }
 
+export interface Notification {
+  id: string
+  content: string
+  time: string
+  read: boolean
+  userId: string
+}
+
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
@@ -56,6 +65,26 @@ export default function ChatPage() {
   const router = useRouter()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [showNotificationList, setShowNotificationList] = useState(false)
+  const [showFriendRequestList, setShowFriendRequestList] = useState(false)
+  const [notificationTab, setNotificationTab] = useState<'all' | 'unread' | 'read'>('all')
+  const [notificationPage, setNotificationPage] = useState(1)
+  const NOTIFICATIONS_PER_PAGE = 10
+  const [notifications, setNotifications] = useState<Notification[]>([
+    { id: '1', content: 'Tin nhắn mới từ John Doe', time: '2 phút trước', read: false, userId: '1' },
+    { id: '2', content: 'Tin nhắn mới từ Jane Smith', time: '10 phút trước', read: true, userId: '2' },
+    { id: '3', content: 'Tin nhắn mới từ Mike Johnson', time: '1 giờ trước', read: false, userId: '3' },
+    // ... thêm nhiều thông báo mẫu để test scroll ...
+    ...Array.from({ length: 25 }, (_, i) => ({
+      id: (4 + i).toString(),
+      content: `Thông báo mẫu ${i + 4}`,
+      time: `${i + 4} phút trước`,
+      read: i % 2 === 0,
+      userId: ((i % 4) + 1).toString(),
+    }))
+  ])
+  const notificationRef = useRef<HTMLDivElement>(null)
+  const friendRequestRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!user) {
@@ -184,12 +213,240 @@ export default function ChatPage() {
     setCurrentImageIndex(selectedIndex)
   }
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setShowNotificationList(false)
+      }
+      if (friendRequestRef.current && !friendRequestRef.current.contains(event.target as Node)) {
+        setShowFriendRequestList(false)
+      }
+    }
+    if (showNotificationList || showFriendRequestList) {
+      document.addEventListener('mousedown', handleClickOutside)
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showNotificationList, showFriendRequestList])
+
+  // Lọc thông báo theo tab
+  const filteredNotifications = notifications.filter(n => {
+    if (notificationTab === 'all') return true
+    if (notificationTab === 'unread') return !n.read
+    if (notificationTab === 'read') return n.read
+    return true
+  })
+  // Phân trang
+  const shownNotifications = filteredNotifications.slice(0, notificationPage * NOTIFICATIONS_PER_PAGE)
+  // Xử lý scroll để load thêm
+  const notificationListDiv = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!showNotificationList) return
+    const handleScroll = () => {
+      const div = notificationListDiv.current
+      if (div && div.scrollTop + div.clientHeight >= div.scrollHeight - 10) {
+        if (shownNotifications.length < filteredNotifications.length) {
+          setNotificationPage(page => page + 1)
+        }
+      }
+    }
+    const div = notificationListDiv.current
+    if (div) div.addEventListener('scroll', handleScroll)
+    return () => { if (div) div.removeEventListener('scroll', handleScroll) }
+  }, [showNotificationList, shownNotifications.length, filteredNotifications.length])
+  // Reset page khi đổi tab
+  useEffect(() => { setNotificationPage(1) }, [notificationTab, showNotificationList])
+
+  // Click vào thông báo chưa đọc: đánh dấu đã đọc và chuyển đến user
+  const handleNotificationClick = (n: Notification) => {
+    if (!n.read) {
+      setNotifications(prev => prev.map(item => item.id === n.id ? { ...item, read: true } : item))
+    }
+    // Chuyển đến chat với user (giả lập)
+    const user = onlineUsers.find(u => u.id === n.userId)
+    if (user) setSelectedUser(user)
+    setShowNotificationList(false)
+  }
+
+  // Friend request tabs and data
+  const [friendTab, setFriendTab] = useState<'suggest'|'blocked'|'invited'>('suggest')
+  const friendSuggestions = [
+    { id: '1', name: 'Alice', mutual: 2 },
+    { id: '2', name: 'Bob', mutual: 1 },
+    { id: '3', name: 'Charlie', mutual: 0 },
+    ...Array.from({ length: 20 }, (_, i) => ({
+      id: (4 + i).toString(),
+      name: `Friend Suggestion ${i + 4}`,
+      mutual: i % 5,
+    }))
+  ]
+  const friendBlocked = [
+    { id: '4', name: 'Eve' },
+    { id: '5', name: 'Mallory' },
+    ...Array.from({ length: 12 }, (_, i) => ({
+      id: (6 + i).toString(),
+      name: `Blocked User ${i + 6}`
+    }))
+  ]
+  const friendInvited = [
+    { id: '6', name: 'Trent' },
+    { id: '7', name: 'Oscar' },
+    ...Array.from({ length: 15 }, (_, i) => ({
+      id: (8 + i).toString(),
+      name: `Invited User ${i + 8}`
+    }))
+  ]
+
   return (
     <div className="d-flex flex-column vh-100" style={{ background: '#f0f2f5' }}>
       <Navbar bg="white" variant="light" className="px-3 shadow-sm">
         <Container fluid>
           <Navbar.Brand className="fw-bold text-primary">ChitChat</Navbar.Brand>
-          <Nav className="ms-auto">
+          <Nav className="ms-auto align-items-center gap-3">
+            {/* Notification Icon */}
+            <div ref={notificationRef} style={{ position: 'relative', cursor: 'pointer' }}>
+              <div title="Tin nhắn mới" onClick={() => { setShowNotificationList(v => !v); setShowFriendRequestList(false) }}>
+                <Bell size={22} />
+                <span style={{
+                  position: 'absolute',
+                  top: -4,
+                  right: -6,
+                  background: '#dc3545',
+                  color: 'white',
+                  borderRadius: '50%',
+                  fontSize: '0.7rem',
+                  padding: '2px 6px',
+                  fontWeight: 600,
+                  lineHeight: 1
+                }}>{notifications.filter(n => !n.read).length}</span>
+              </div>
+              {showNotificationList && (
+                <div style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: '120%',
+                  minWidth: '340px',
+                  background: 'white',
+                  boxShadow: '0 2px 16px rgba(0,0,0,0.15)',
+                  borderRadius: 8,
+                  zIndex: 1000,
+                  maxHeight: '60vh',
+                  overflowY: 'auto',
+                }}>
+                  <div className="border-bottom px-3 py-2 fw-bold">Thông báo</div>
+                  {/* Tabs */}
+                  <div className="d-flex border-bottom px-2 gap-2 pb-1 pt-2">
+                    <button className={`btn btn-sm d-flex align-items-center gap-1 ${notificationTab==='all'?'btn-primary':'btn-light'}`} onClick={()=>setNotificationTab('all')}><Inbox size={16}/>Tất cả</button>
+                    <button className={`btn btn-sm d-flex align-items-center gap-1 ${notificationTab==='unread'?'btn-primary':'btn-light'}`} onClick={()=>setNotificationTab('unread')}><Envelope size={16}/>Chưa đọc</button>
+                    <button className={`btn btn-sm d-flex align-items-center gap-1 ${notificationTab==='read'?'btn-primary':'btn-light'}`} onClick={()=>setNotificationTab('read')}><EnvelopeOpen size={16}/>Đã đọc</button>
+                  </div>
+                  <div ref={notificationListDiv} className="notification-dropdown-scroll" style={{
+                    maxHeight:'50vh',
+                    overflowY:'auto',
+                  }}>
+                    {shownNotifications.length === 0 ? (
+                      <div className="text-center text-muted py-4">Không có thông báo</div>
+                    ) : shownNotifications.map(n => (
+                      <div
+                        key={n.id}
+                        className={`px-3 py-2 d-flex align-items-center gap-2 ${!n.read ? 'bg-light' : ''}`}
+                        style={{ borderBottom: '1px solid #f0f0f0', cursor: 'pointer' }}
+                        onClick={()=>handleNotificationClick(n)}
+                      >
+                        {!n.read && <span style={{ width: 8, height: 8, background: '#4caf50', borderRadius: '50%', display: 'inline-block' }} />}
+                        <div className="flex-grow-1">
+                          <div style={{ fontWeight: !n.read ? 600 : 400 }}>{n.content}</div>
+                          <div className="small text-muted">{n.time}</div>
+                        </div>
+                      </div>
+                    ))}
+                    {shownNotifications.length < filteredNotifications.length && (
+                      <div className="text-center text-muted py-2 small">Đang tải thêm...</div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+            {/* Friend Request Icon */}
+            <div ref={friendRequestRef} style={{ position: 'relative', cursor: 'pointer' }}>
+              <div title="Lời mời kết bạn" onClick={() => { setShowFriendRequestList(v => !v); setShowNotificationList(false) }}>
+                <PersonPlus size={22} />
+                <span style={{
+                  position: 'absolute',
+                  top: -4,
+                  right: -6,
+                  background: '#ffc107',
+                  color: '#212529',
+                  borderRadius: '50%',
+                  fontSize: '0.7rem',
+                  padding: '2px 6px',
+                  fontWeight: 600,
+                  lineHeight: 1
+                }}>1</span>
+              </div>
+              {showFriendRequestList && (
+                <div style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: '120%',
+                  minWidth: '340px',
+                  background: 'white',
+                  boxShadow: '0 2px 16px rgba(0,0,0,0.15)',
+                  borderRadius: 8,
+                  zIndex: 1000,
+                  maxHeight: '60vh',
+                  overflow: 'hidden',
+                }}>
+                  <div className="border-bottom px-3 py-2 fw-bold">Kết bạn</div>
+                  {/* Tabs */}
+                  <div className="d-flex border-bottom px-2 gap-2 pb-1 pt-2">
+                    <button className={`btn btn-sm d-flex align-items-center gap-1 ${friendTab==='suggest'?'btn-primary':'btn-light'}`} onClick={()=>setFriendTab('suggest')}><PeopleFill size={16}/>Gợi ý</button>
+                    <button className={`btn btn-sm d-flex align-items-center gap-1 ${friendTab==='blocked'?'btn-primary':'btn-light'}`} onClick={()=>setFriendTab('blocked')}><PersonXFill size={16}/>Đã chặn</button>
+                    <button className={`btn btn-sm d-flex align-items-center gap-1 ${friendTab==='invited'?'btn-primary':'btn-light'}`} onClick={()=>setFriendTab('invited')}><PersonCheckFill size={16}/>Đã mời</button>
+                  </div>
+                  <div className="notification-dropdown-scroll" style={{maxHeight:'50vh',overflowY:'auto'}}>
+                    {friendTab==='suggest' && (
+                      friendSuggestions.length === 0 ? <div className="text-center text-muted py-4">Không có gợi ý</div> :
+                      friendSuggestions.map(f => (
+                        <div key={f.id} className="px-3 py-2 d-flex align-items-center gap-2 border-bottom">
+                          <PeopleFill size={20} className="text-primary"/>
+                          <div className="flex-grow-1">
+                            <div className="fw-bold">{f.name}</div>
+                            <div className="small text-muted">{f.mutual} bạn chung</div>
+                          </div>
+                          <button className="btn btn-sm btn-outline-primary">Kết bạn</button>
+                        </div>
+                      ))
+                    )}
+                    {friendTab==='blocked' && (
+                      friendBlocked.length === 0 ? <div className="text-center text-muted py-4">Không có ai bị chặn</div> :
+                      friendBlocked.map(f => (
+                        <div key={f.id} className="px-3 py-2 d-flex align-items-center gap-2 border-bottom">
+                          <PersonXFill size={20} className="text-danger"/>
+                          <div className="flex-grow-1">
+                            <div className="fw-bold">{f.name}</div>
+                          </div>
+                          <button className="btn btn-sm btn-outline-secondary">Bỏ chặn</button>
+                        </div>
+                      ))
+                    )}
+                    {friendTab==='invited' && (
+                      friendInvited.length === 0 ? <div className="text-center text-muted py-4">Chưa gửi lời mời nào</div> :
+                      friendInvited.map(f => (
+                        <div key={f.id} className="px-3 py-2 d-flex align-items-center gap-2 border-bottom">
+                          <PersonCheckFill size={20} className="text-success"/>
+                          <div className="flex-grow-1">
+                            <div className="fw-bold">{f.name}</div>
+                          </div>
+                          <button className="btn btn-sm btn-outline-secondary">Thu hồi</button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
             <Button variant="outline-primary" onClick={logout}>
               Logout
             </Button>
