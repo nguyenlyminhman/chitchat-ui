@@ -10,7 +10,7 @@ import ChatMessages from '@/components/ChatMessages'
 import ChatRightDrawer from '@/components/ChatRightDrawer'
 import ImageModalCarousel from '@/components/ImageModalCarousel'
 import FileModal from '@/components/FileModal'
-import { Bell, PersonPlus, Inbox, EnvelopeOpen, Envelope, PeopleFill, PersonXFill, PersonCheckFill } from 'react-bootstrap-icons'
+import { Bell, PersonPlus, Inbox, EnvelopeOpen, Envelope, PeopleFill, PersonXFill, PersonCheckFill, Check2Circle, XCircle, Search } from 'react-bootstrap-icons'
 
 export interface Message {
   id: string
@@ -67,6 +67,7 @@ export default function ChatPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [showNotificationList, setShowNotificationList] = useState(false)
   const [showFriendRequestList, setShowFriendRequestList] = useState(false)
+  const [showSuggestList, setShowSuggestList] = useState(false)
   const [notificationTab, setNotificationTab] = useState<'all' | 'unread' | 'read'>('all')
   const [notificationPage, setNotificationPage] = useState(1)
   const NOTIFICATIONS_PER_PAGE = 10
@@ -85,6 +86,11 @@ export default function ChatPage() {
   ])
   const notificationRef = useRef<HTMLDivElement>(null)
   const friendRequestRef = useRef<HTMLDivElement>(null)
+  const suggestRef = useRef<HTMLDivElement>(null)
+  const [showSearch, setShowSearch] = useState(false)
+  const [searchText, setSearchText] = useState('')
+  const [searchResults, setSearchResults] = useState<Message[]>([])
+  const searchRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!user) {
@@ -162,7 +168,6 @@ export default function ChatPage() {
 
   const handleUserSelect = (user: OnlineUser) => {
     setSelectedUser(user)
-    setMessages([])
   }
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -221,14 +226,20 @@ export default function ChatPage() {
       if (friendRequestRef.current && !friendRequestRef.current.contains(event.target as Node)) {
         setShowFriendRequestList(false)
       }
+      if (suggestRef.current && !suggestRef.current.contains(event.target as Node)) {
+        setShowSuggestList(false)
+      }
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSearch(false)
+      }
     }
-    if (showNotificationList || showFriendRequestList) {
+    if (showNotificationList || showFriendRequestList || showSuggestList || showSearch) {
       document.addEventListener('mousedown', handleClickOutside)
     } else {
       document.removeEventListener('mousedown', handleClickOutside)
     }
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [showNotificationList, showFriendRequestList])
+  }, [showNotificationList, showFriendRequestList, showSuggestList, showSearch])
 
   // Lọc thông báo theo tab
   const filteredNotifications = notifications.filter(n => {
@@ -270,7 +281,7 @@ export default function ChatPage() {
   }
 
   // Friend request tabs and data
-  const [friendTab, setFriendTab] = useState<'suggest'|'blocked'|'invited'>('suggest')
+  const [friendTab, setFriendTab] = useState<'blocked'|'invited'|'received'>('blocked')
   const friendSuggestions = [
     { id: '1', name: 'Alice', mutual: 2 },
     { id: '2', name: 'Bob', mutual: 1 },
@@ -297,6 +308,25 @@ export default function ChatPage() {
       name: `Invited User ${i + 8}`
     }))
   ]
+  const friendReceived = [
+    { id: '100', name: 'User Request 1' },
+    { id: '101', name: 'User Request 2' },
+    { id: '102', name: 'User Request 3' },
+    ...Array.from({ length: 8 }, (_, i) => ({
+      id: (110 + i).toString(),
+      name: `User Request ${i + 4}`
+    }))
+  ]
+
+  useEffect(() => {
+    if (searchText.trim() === '') {
+      setSearchResults([])
+      return
+    }
+    setSearchResults(
+      messages.filter(m => m.content.toLowerCase().includes(searchText.toLowerCase()))
+    )
+  }, [searchText, messages])
 
   return (
     <div className="d-flex flex-column vh-100" style={{ background: '#f0f2f5' }}>
@@ -306,7 +336,7 @@ export default function ChatPage() {
           <Nav className="ms-auto align-items-center gap-3">
             {/* Notification Icon */}
             <div ref={notificationRef} style={{ position: 'relative', cursor: 'pointer' }}>
-              <div title="Tin nhắn mới" onClick={() => { setShowNotificationList(v => !v); setShowFriendRequestList(false) }}>
+              <div title="Thông báo" onClick={() => { setShowNotificationList(v => !v); setShowFriendRequestList(false); setShowSuggestList(false) }}>
                 <Bell size={22} />
                 <span style={{
                   position: 'absolute',
@@ -368,9 +398,57 @@ export default function ChatPage() {
                 </div>
               )}
             </div>
-            {/* Friend Request Icon */}
+            {/* Friend Suggestion Icon */}
+            <div ref={suggestRef} style={{ position: 'relative', cursor: 'pointer' }}>
+              <div title="Gợi ý kết bạn" onClick={() => { setShowSuggestList(v => !v); setShowNotificationList(false); setShowFriendRequestList(false) }}>
+                <PeopleFill size={22} />
+                <span style={{
+                  position: 'absolute',
+                  top: -4,
+                  right: -6,
+                  background: '#0d6efd',
+                  color: 'white',
+                  borderRadius: '50%',
+                  fontSize: '0.7rem',
+                  padding: '2px 6px',
+                  fontWeight: 600,
+                  lineHeight: 1
+                }}>{friendSuggestions.length}</span>
+              </div>
+              {showSuggestList && (
+                <div style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: '120%',
+                  minWidth: '340px',
+                  background: 'white',
+                  boxShadow: '0 2px 16px rgba(0,0,0,0.15)',
+                  borderRadius: 8,
+                  zIndex: 1000,
+                  maxHeight: '60vh',
+                  overflow: 'hidden',
+                }}>
+                  <div className="border-bottom px-3 py-2 fw-bold">Gợi ý kết bạn</div>
+                  <div className="notification-dropdown-scroll" style={{maxHeight:'50vh',overflowY:'auto'}}>
+                    {friendSuggestions.length === 0 ? <div className="text-center text-muted py-4">Không có gợi ý</div> :
+                      friendSuggestions.map(f => (
+                        <div key={f.id} className="px-3 py-2 d-flex align-items-center gap-2 border-bottom">
+                          <PeopleFill size={20} className="text-primary"/>
+                          <div className="flex-grow-1">
+                            <div className="fw-bold">{f.name}</div>
+                            <div className="small text-muted">{f.mutual} bạn chung</div>
+                          </div>
+                          <button className="btn btn-sm btn-outline-primary">Kết bạn</button>
+                        </div>
+                      ))
+                    }
+                  </div>
+                </div>
+              )}
+            </div>
+            {/* Friend Request Icon (now Friend Management) */}
             <div ref={friendRequestRef} style={{ position: 'relative', cursor: 'pointer' }}>
-              <div title="Lời mời kết bạn" onClick={() => { setShowFriendRequestList(v => !v); setShowNotificationList(false) }}>
+              <div title="Quản lý bạn bè" onClick={() => { setShowFriendRequestList(v => !v); setShowNotificationList(false); setShowSuggestList(false) }}>
                 <PersonPlus size={22} />
                 <span style={{
                   position: 'absolute',
@@ -383,7 +461,7 @@ export default function ChatPage() {
                   padding: '2px 6px',
                   fontWeight: 600,
                   lineHeight: 1
-                }}>1</span>
+                }}>{friendInvited.length + friendBlocked.length}</span>
               </div>
               {showFriendRequestList && (
                 <div style={{
@@ -398,27 +476,14 @@ export default function ChatPage() {
                   maxHeight: '60vh',
                   overflow: 'hidden',
                 }}>
-                  <div className="border-bottom px-3 py-2 fw-bold">Kết bạn</div>
+                  <div className="border-bottom px-3 py-2 fw-bold">Quản lý bạn bè</div>
                   {/* Tabs */}
                   <div className="d-flex border-bottom px-2 gap-2 pb-1 pt-2">
-                    <button className={`btn btn-sm d-flex align-items-center gap-1 ${friendTab==='suggest'?'btn-primary':'btn-light'}`} onClick={()=>setFriendTab('suggest')}><PeopleFill size={16}/>Gợi ý</button>
                     <button className={`btn btn-sm d-flex align-items-center gap-1 ${friendTab==='blocked'?'btn-primary':'btn-light'}`} onClick={()=>setFriendTab('blocked')}><PersonXFill size={16}/>Đã chặn</button>
                     <button className={`btn btn-sm d-flex align-items-center gap-1 ${friendTab==='invited'?'btn-primary':'btn-light'}`} onClick={()=>setFriendTab('invited')}><PersonCheckFill size={16}/>Đã mời</button>
+                    <button className={`btn btn-sm d-flex align-items-center gap-1 ${friendTab==='received'?'btn-primary':'btn-light'}`} onClick={()=>setFriendTab('received')}><Inbox size={16}/>Lời mời</button>
                   </div>
                   <div className="notification-dropdown-scroll" style={{maxHeight:'50vh',overflowY:'auto'}}>
-                    {friendTab==='suggest' && (
-                      friendSuggestions.length === 0 ? <div className="text-center text-muted py-4">Không có gợi ý</div> :
-                      friendSuggestions.map(f => (
-                        <div key={f.id} className="px-3 py-2 d-flex align-items-center gap-2 border-bottom">
-                          <PeopleFill size={20} className="text-primary"/>
-                          <div className="flex-grow-1">
-                            <div className="fw-bold">{f.name}</div>
-                            <div className="small text-muted">{f.mutual} bạn chung</div>
-                          </div>
-                          <button className="btn btn-sm btn-outline-primary">Kết bạn</button>
-                        </div>
-                      ))
-                    )}
                     {friendTab==='blocked' && (
                       friendBlocked.length === 0 ? <div className="text-center text-muted py-4">Không có ai bị chặn</div> :
                       friendBlocked.map(f => (
@@ -443,6 +508,64 @@ export default function ChatPage() {
                         </div>
                       ))
                     )}
+                    {friendTab==='received' && (
+                      friendReceived.length === 0 ? <div className="text-center text-muted py-4">Không có lời mời nào</div> :
+                      friendReceived.map(f => (
+                        <div key={f.id} className="px-3 py-2 d-flex align-items-center gap-2 border-bottom">
+                          <Inbox size={20} className="text-warning"/>
+                          <div className="flex-grow-1">
+                            <div className="fw-bold">{f.name}</div>
+                          </div>
+                          <Check2Circle size={24} className="text-success me-2" style={{cursor:'pointer'}} title="Chấp nhận" />
+                          <XCircle size={24} className="text-danger" style={{cursor:'pointer'}} title="Từ chối" />
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+            {/* Search Icon */}
+            <div ref={searchRef} style={{ position: 'relative', cursor: 'pointer' }}>
+              <div title="Tìm kiếm tin nhắn" onClick={() => { setShowSearch(v => !v); setShowNotificationList(false); setShowFriendRequestList(false); setShowSuggestList(false) }}>
+                <Search size={22} />
+              </div>
+              {showSearch && (
+                <div style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: '120%',
+                  minWidth: '340px',
+                  background: 'white',
+                  boxShadow: '0 2px 16px rgba(0,0,0,0.15)',
+                  borderRadius: 8,
+                  zIndex: 1000,
+                  maxHeight: '60vh',
+                  overflow: 'hidden',
+                }}>
+                  <div className="border-bottom px-3 py-2 fw-bold">Tìm kiếm tin nhắn</div>
+                  <div className="p-2 border-bottom">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Nhập nội dung tin nhắn..."
+                      value={searchText}
+                      onChange={e => setSearchText(e.target.value)}
+                      autoFocus
+                    />
+                  </div>
+                  <div className="notification-dropdown-scroll" style={{maxHeight:'40vh',overflowY:'auto'}}>
+                    {searchText.trim() === '' ? (
+                      <div className="text-center text-muted py-4">Nhập từ khóa để tìm kiếm</div>
+                    ) : searchResults.length === 0 ? (
+                      <div className="text-center text-muted py-4">Không tìm thấy tin nhắn phù hợp</div>
+                    ) : searchResults.map(m => (
+                      <div key={m.id} className="px-3 py-2 border-bottom">
+                        <div className="fw-bold">{m.sender}</div>
+                        <div>{m.content}</div>
+                        <div className="small text-muted">{m.timestamp.toLocaleString()}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
