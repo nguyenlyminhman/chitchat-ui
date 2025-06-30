@@ -4,8 +4,14 @@ import { useState, useEffect, useRef } from 'react'
 import { Container, Form, Button, Card, Navbar, Nav, Image, Modal, Carousel } from 'react-bootstrap'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
+import OnlineUsersSidebar from '@/components/OnlineUsersSidebar'
+import ChatHeader from '@/components/ChatHeader'
+import ChatMessages from '@/components/ChatMessages'
+import ChatRightDrawer from '@/components/ChatRightDrawer'
+import ImageModalCarousel from '@/components/ImageModalCarousel'
+import FileModal from '@/components/FileModal'
 
-interface Message {
+export interface Message {
   id: string
   content: string
   sender: string
@@ -22,7 +28,7 @@ interface Message {
   }>
 }
 
-interface OnlineUser {
+export interface OnlineUser {
   id: string
   username: string
   lastSeen: Date
@@ -193,488 +199,50 @@ export default function ChatPage() {
 
       <div className="d-flex flex-grow-1 overflow-hidden">
         {/* Online Users Sidebar */}
-        <div className="border-end bg-white" style={{ width: '280px', minWidth: '280px' }}>
-          <div className="p-3 border-bottom">
-            <h6 className="mb-0 text-muted">Online Users</h6>
-          </div>
-          <div className="overflow-auto" style={{ height: 'calc(100vh - 120px)' }}>
-            {onlineUsers.map((onlineUser) => (
-              <div
-                key={onlineUser.id}
-                className={`d-flex align-items-center p-3 border-bottom hover-bg-light ${
-                  selectedUser?.id === onlineUser.id ? 'bg-light' : ''
-                }`}
-                style={{ cursor: 'pointer' }}
-                onClick={() => handleUserSelect(onlineUser)}
-              >
-                <div
-                  className="rounded-circle d-flex align-items-center justify-content-center me-3"
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    background: '#e3f2fd',
-                    color: '#1976d2',
-                    fontSize: '1rem',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  {onlineUser.username[0].toUpperCase()}
-                </div>
-                <div>
-                  <div className="fw-medium d-flex align-items-center">
-                    {onlineUser.username}
-                    <span
-                      className="rounded-circle ms-2"
-                      style={{
-                        width: '8px',
-                        height: '8px',
-                        background: '#4caf50',
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
+        <OnlineUsersSidebar 
+          onlineUsers={onlineUsers} 
+          selectedUser={selectedUser} 
+          onUserSelect={handleUserSelect} 
+        />
         {/* Chat Area */}
         <Container fluid className="flex-grow-1 d-flex flex-column py-3">
           {selectedUser ? (
             <>
               {/* Chat Header */}
-              <div className="d-flex align-items-center justify-content-between p-3 bg-white rounded-3 mb-3 shadow-sm">
-                <div className="d-flex align-items-center">
-                  <div
-                    className="rounded-circle d-flex align-items-center justify-content-center me-3"
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                      background: '#e3f2fd',
-                      color: '#1976d2',
-                      fontSize: '1rem',
-                      fontWeight: 'bold',
-                    }}
-                  >
-                    {selectedUser.username[0].toUpperCase()}
-                  </div>
-                  <div>
-                    <div className="fw-medium d-flex align-items-center">
-                      {selectedUser.username}
-                      <span
-                        className="rounded-circle ms-2"
-                        style={{
-                          width: '8px',
-                          height: '8px',
-                          background: '#4caf50',
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-                <Button
-                  variant="outline-secondary"
-                  size="sm"
-                  onClick={() => setShowRightDrawer(!showRightDrawer)}
-                >
-                  {showRightDrawer ? '✕' : '☰'}
-                </Button>
-              </div>
-
+              <ChatHeader 
+                selectedUser={selectedUser} 
+                showRightDrawer={showRightDrawer} 
+                setShowRightDrawer={setShowRightDrawer} 
+              />
               <div className="d-flex flex-grow-1">
                 {/* Main Chat Content */}
-                <div className={`flex-grow-1 d-flex flex-column ${showRightDrawer ? 'me-3' : ''}`}>
-                  <div className="flex-grow-1 overflow-auto mb-3 px-2">
-                    {messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`d-flex mb-2 ${
-                          message.sender === user?.username ? 'justify-content-end' : 'justify-content-start'
-                        }`}
-                      >
-                        <div
-                          className={`d-flex align-items-end ${
-                            message.sender === user?.username ? 'flex-row-reverse' : 'flex-row'
-                          }`}
-                          style={{ maxWidth: '70%' }}
-                        >
-                          <div 
-                            className={`rounded-circle d-flex align-items-center justify-content-center ${
-                              message.sender === user?.username ? 'ms-2' : 'me-2'
-                            }`}
-                            style={{ 
-                              width: '28px', 
-                              height: '28px',
-                              background: message.sender === user?.username ? '#e3f2fd' : '#bbdefb',
-                              color: message.sender === user?.username ? '#1976d2' : '#1565c0',
-                              fontSize: '0.8rem',
-                              fontWeight: 'bold'
-                            }}
-                          >
-                            {message.sender[0].toUpperCase()}
-                          </div>
-                          <div>
-                            <div
-                              className={`rounded-3 px-3 py-2 ${
-                                message.sender === user?.username
-                                  ? 'bg-primary text-white'
-                                  : 'bg-white'
-                              }`}
-                              style={{ 
-                                boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                                fontSize: '0.95rem',
-                                lineHeight: '1.4'
-                              }}
-                            >
-                              {message.type === 'image' && message.fileUrl && (
-                                <div className="mb-2">
-                                  <Image
-                                    src={message.fileUrl}
-                                    alt="Shared image"
-                                    fluid
-                                    className="rounded"
-                                    style={{ 
-                                      maxWidth: '200px', 
-                                      maxHeight: '200px',
-                                      cursor: 'pointer'
-                                    }}
-                                    onClick={() => handleImageClick(message.fileUrl!)}
-                                  />
-                                </div>
-                              )}
-                              {message.type === 'file' && message.fileName && message.fileUrl && (
-                                <div 
-                                  className="mb-2 p-2 bg-light rounded"
-                                  style={{ cursor: 'pointer' }}
-                                  onClick={() => handleFileClick({
-                                    name: message.fileName!,
-                                    size: message.fileSize!,
-                                    url: message.fileUrl!
-                                  })}
-                                >
-                                  <div className="fw-medium">{message.fileName}</div>
-                                  <small className="text-muted">
-                                    {message.fileSize && formatFileSize(message.fileSize)}
-                                  </small>
-                                </div>
-                              )}
-                              {message.type === 'multiple' && message.files && (
-                                <div className="mb-2">
-                                  <div className="row g-2">
-                                    {message.files.map((file, index) => (
-                                      <div key={index} className="col-6 col-md-4">
-                                        {file.type.startsWith('image/') ? (
-                                          <Image
-                                            src={file.url}
-                                            alt={file.name}
-                                            fluid
-                                            className="rounded"
-                                            style={{ 
-                                              maxHeight: '120px',
-                                              cursor: 'pointer'
-                                            }}
-                                            onClick={() => {
-                                              const imageUrls = message.files!
-                                                .filter(f => f.type.startsWith('image/'))
-                                                .map(f => f.url)
-                                              handleImageClick(file.url, imageUrls)
-                                            }}
-                                          />
-                                        ) : (
-                                          <div 
-                                            className="p-2 bg-light rounded"
-                                            style={{ cursor: 'pointer' }}
-                                            onClick={() => handleFileClick({
-                                              name: file.name,
-                                              size: file.size,
-                                              url: file.url
-                                            })}
-                                          >
-                                            <div className="fw-medium small">{file.name}</div>
-                                            <small className="text-muted">{formatFileSize(file.size)}</small>
-                                          </div>
-                                        )}
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                              {message.content}
-                            </div>
-                            <small 
-                              className={`d-block mt-1 ${
-                                message.sender === user?.username ? 'text-end' : 'text-start'
-                              }`}
-                              style={{ 
-                                fontSize: '0.75rem',
-                                color: '#666'
-                              }}
-                            >
-                              {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </small>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                    <div ref={messagesEndRef} />
-                  </div>
-
-                  {/* Selected Files Preview */}
-                  {selectedFiles.length > 0 && (
-                    <Card className="mb-3 border-0 shadow-sm">
-                      <Card.Body className="p-2">
-                        <div className="d-flex justify-content-between align-items-center mb-2">
-                          <small className="text-muted">{selectedFiles.length} file(s) selected</small>
-                          <Button
-                            variant="link"
-                            className="text-danger p-0"
-                            onClick={() => {
-                              setSelectedFiles([])
-                              if (fileInputRef.current) {
-                                fileInputRef.current.value = ''
-                              }
-                            }}
-                          >
-                            Clear all
-                          </Button>
-                        </div>
-                        <div className="row g-2">
-                          {selectedFiles.map((file, index) => (
-                            <div key={index} className="col-6 col-md-4">
-                              <div className="d-flex align-items-center p-2 bg-light rounded">
-                                <div className="me-2">
-                                  {file.type.startsWith('image/') ? (
-                                    <Image
-                                      src={URL.createObjectURL(file)}
-                                      alt="Preview"
-                                      style={{ width: '40px', height: '40px', objectFit: 'cover' }}
-                                      className="rounded"
-                                    />
-                                  ) : (
-                                    <div
-                                      className="d-flex align-items-center justify-content-center rounded"
-                                      style={{
-                                        width: '40px',
-                                        height: '40px',
-                                        background: '#e3f2fd',
-                                        color: '#1976d2',
-                                      }}
-                                    >
-                                      📄
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="flex-grow-1">
-                                  <div className="fw-medium small">{file.name}</div>
-                                  <small className="text-muted">{formatFileSize(file.size)}</small>
-                                </div>
-                                <Button
-                                  variant="link"
-                                  className="text-danger p-0"
-                                  onClick={() => removeSelectedFile(index)}
-                                >
-                                  ✕
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </Card.Body>
-                    </Card>
-                  )}
-
-                  <Card className="border-0 shadow-sm">
-                    <Card.Body className="p-2">
-                      <Form
-                        onSubmit={(e) => {
-                          e.preventDefault()
-                          handleSendMessage()
-                        }}
-                      >
-                        <div className="d-flex gap-2">
-                          <Form.Control
-                            type="text"
-                            value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            onKeyPress={handleKeyPress}
-                            placeholder="Type a message..."
-                            className="border-0 shadow-none"
-                          />
-                          <input
-                            ref={fileInputRef}
-                            type="file"
-                            className="d-none"
-                            onChange={handleFileSelect}
-                            accept="image/*,.pdf,.doc,.docx,.txt,.zip,.rar"
-                            multiple
-                          />
-                          <Button
-                            variant="outline-secondary"
-                            onClick={() => fileInputRef.current?.click()}
-                            className="px-3"
-                          >
-                            📎
-                          </Button>
-                          <Button
-                            variant="primary"
-                            type="submit"
-                            disabled={!newMessage.trim() && selectedFiles.length === 0}
-                            className="px-4"
-                          >
-                            Send
-                          </Button>
-                        </div>
-                      </Form>
-                    </Card.Body>
-                  </Card>
+                <div className={`flex-grow-1 d-flex flex-column ${showRightDrawer ? 'me-3' : ''}`}> 
+                  <ChatMessages
+                    messages={messages}
+                    user={user}
+                    newMessage={newMessage}
+                    setNewMessage={setNewMessage}
+                    selectedFiles={selectedFiles}
+                    setSelectedFiles={setSelectedFiles}
+                    fileInputRef={fileInputRef}
+                    handleSendMessage={handleSendMessage}
+                    handleKeyPress={handleKeyPress}
+                    handleFileSelect={handleFileSelect}
+                    removeSelectedFile={removeSelectedFile}
+                    formatFileSize={formatFileSize}
+                    handleImageClick={handleImageClick}
+                    handleFileClick={handleFileClick}
+                  />
                 </div>
-
                 {/* Right Drawer */}
-                {showRightDrawer && (
-                  <div className="bg-white rounded-3 shadow-sm" style={{ width: '300px', minWidth: '300px' }}>
-                    <div className="p-3 border-bottom">
-                      <h6 className="mb-0">Chat Details</h6>
-                    </div>
-                    
-                    {/* Tabs */}
-                    <Nav variant="tabs" className="px-3 pt-2">
-                      <Nav.Item>
-                        <Nav.Link 
-                          active={activeTab === 'images'} 
-                          onClick={() => setActiveTab('images')}
-                          className="py-2"
-                        >
-                          Hình ảnh
-                        </Nav.Link>
-                      </Nav.Item>
-                      <Nav.Item>
-                        <Nav.Link 
-                          active={activeTab === 'files'} 
-                          onClick={() => setActiveTab('files')}
-                          className="py-2"
-                        >
-                          Tệp
-                        </Nav.Link>
-                      </Nav.Item>
-                      <Nav.Item>
-                        <Nav.Link 
-                          active={activeTab === 'links'} 
-                          onClick={() => setActiveTab('links')}
-                          className="py-2"
-                        >
-                          Link
-                        </Nav.Link>
-                      </Nav.Item>
-                    </Nav>
-
-                    {/* Tab Content */}
-                    <div className="p-3" style={{ height: 'calc(100vh - 280px)', overflow: 'auto' }}>
-                      {activeTab === 'images' && (
-                        <div>
-                          <h6 className="mb-3">Hình ảnh đã chia sẻ</h6>
-                          <div className="text-muted small mb-3">
-                            {messages.filter(m => m.type === 'image' || (m.type === 'multiple' && m.files?.some(f => f.type.startsWith('image/')))).length} hình ảnh
-                          </div>
-                          <div className="row g-2">
-                            {messages
-                              .filter(m => m.type === 'image' || (m.type === 'multiple' && m.files?.some(f => f.type.startsWith('image/'))))
-                              .map((message, index) => {
-                                if (message.type === 'image' && message.fileUrl) {
-                                  return (
-                                    <div key={index} className="col-6">
-                                      <Image
-                                        src={message.fileUrl}
-                                        alt="Shared image"
-                                        fluid
-                                        className="rounded"
-                                        style={{ cursor: 'pointer' }}
-                                        onClick={() => handleImageClick(message.fileUrl!)}
-                                      />
-                                    </div>
-                                  )
-                                } else if (message.type === 'multiple' && message.files) {
-                                  return message.files
-                                    .filter(f => f.type.startsWith('image/'))
-                                    .map((file, fileIndex) => (
-                                      <div key={`${index}-${fileIndex}`} className="col-6">
-                                        <Image
-                                          src={file.url}
-                                          alt={file.name}
-                                          fluid
-                                          className="rounded"
-                                          style={{ cursor: 'pointer' }}
-                                          onClick={() => {
-                                            const imageUrls = message.files!
-                                              .filter(f => f.type.startsWith('image/'))
-                                              .map(f => f.url)
-                                            handleImageClick(file.url, imageUrls)
-                                          }}
-                                        />
-                                      </div>
-                                    ))
-                                }
-                                return null
-                              })}
-                          </div>
-                        </div>
-                      )}
-
-                      {activeTab === 'files' && (
-                        <div>
-                          <h6 className="mb-3">Tệp đã chia sẻ</h6>
-                          <div className="text-muted small mb-3">
-                            {messages.filter(m => m.type === 'file' || (m.type === 'multiple' && m.files?.some(f => !f.type.startsWith('image/')))).length} tệp
-                          </div>
-                          <div>
-                            {messages
-                              .filter(m => m.type === 'file' || (m.type === 'multiple' && m.files?.some(f => !f.type.startsWith('image/'))))
-                              .map((message, index) => {
-                                if (message.type === 'file' && message.fileName && message.fileUrl) {
-                                  return (
-                                    <div key={index} className="mb-2 p-2 bg-light rounded">
-                                      <div className="d-flex align-items-center">
-                                        <div className="me-2">📄</div>
-                                        <div className="flex-grow-1">
-                                          <div className="fw-medium small">{message.fileName}</div>
-                                          <small className="text-muted">
-                                            {message.fileSize && formatFileSize(message.fileSize)}
-                                          </small>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )
-                                } else if (message.type === 'multiple' && message.files) {
-                                  return message.files
-                                    .filter(f => !f.type.startsWith('image/'))
-                                    .map((file, fileIndex) => (
-                                      <div key={`${index}-${fileIndex}`} className="mb-2 p-2 bg-light rounded">
-                                        <div className="d-flex align-items-center">
-                                          <div className="me-2">📄</div>
-                                          <div className="flex-grow-1">
-                                            <div className="fw-medium small">{file.name}</div>
-                                            <small className="text-muted">{formatFileSize(file.size)}</small>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    ))
-                                }
-                                return null
-                              })}
-                          </div>
-                        </div>
-                      )}
-
-                      {activeTab === 'links' && (
-                        <div>
-                          <h6 className="mb-3">Liên kết đã chia sẻ</h6>
-                          <div className="text-muted small">
-                            Chưa có liên kết nào được chia sẻ
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+                <ChatRightDrawer
+                  show={showRightDrawer}
+                  activeTab={activeTab}
+                  setActiveTab={setActiveTab}
+                  messages={messages}
+                  handleImageClick={handleImageClick}
+                  formatFileSize={formatFileSize}
+                />
               </div>
             </>
           ) : (
@@ -689,103 +257,22 @@ export default function ChatPage() {
       </div>
 
       {/* Image Modal with Carousel */}
-      <Modal show={showImageModal} onHide={() => setShowImageModal(false)} size="lg" centered>
-        <Modal.Header closeButton>
-          <Modal.Title>
-            Image View {selectedImages.length > 1 && `(${currentImageIndex + 1}/${selectedImages.length})`}
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body className="text-center p-0">
-          {selectedImages.length > 1 ? (
-            <Carousel
-              activeIndex={currentImageIndex}
-              onSelect={handleCarouselSelect}
-              interval={null}
-              indicators={false}
-              controls={true}
-            >
-              {selectedImages.map((imageUrl, index) => (
-                <Carousel.Item key={index}>
-                  <Image
-                    src={imageUrl}
-                    alt={`Image ${index + 1}`}
-                    fluid
-                    className="rounded"
-                    style={{ maxHeight: '70vh' }}
-                  />
-                </Carousel.Item>
-              ))}
-            </Carousel>
-          ) : (
-            <Image
-              src={selectedImages[0]}
-              alt="Full size image"
-              fluid
-              className="rounded"
-              style={{ maxHeight: '70vh' }}
-            />
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowImageModal(false)}>
-            Close
-          </Button>
-          <Button 
-            variant="primary" 
-            onClick={() => {
-              downloadFile(selectedImages[currentImageIndex], `image_${currentImageIndex + 1}.jpg`)
-              setShowImageModal(false)
-            }}
-          >
-            Download
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
+      <ImageModalCarousel
+        show={showImageModal}
+        images={selectedImages}
+        currentIndex={currentImageIndex}
+        onHide={() => setShowImageModal(false)}
+        onSelect={handleCarouselSelect}
+        onDownload={downloadFile}
+      />
       {/* File Modal */}
-      <Modal show={showFileModal} onHide={() => setShowFileModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>File Details</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {selectedFileData && (
-            <div className="text-center">
-              <div className="mb-3">
-                <div
-                  className="d-flex align-items-center justify-content-center rounded mx-auto mb-3"
-                  style={{
-                    width: '80px',
-                    height: '80px',
-                    background: '#e3f2fd',
-                    color: '#1976d2',
-                    fontSize: '2rem',
-                  }}
-                >
-                  📄
-                </div>
-                <h5>{selectedFileData.name}</h5>
-                <p className="text-muted mb-0">{formatFileSize(selectedFileData.size)}</p>
-              </div>
-            </div>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowFileModal(false)}>
-            Close
-          </Button>
-          <Button 
-            variant="primary" 
-            onClick={() => {
-              if (selectedFileData) {
-                downloadFile(selectedFileData.url, selectedFileData.name)
-                setShowFileModal(false)
-              }
-            }}
-          >
-            Download
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <FileModal
+        show={showFileModal}
+        fileData={selectedFileData}
+        formatFileSize={formatFileSize}
+        onHide={() => setShowFileModal(false)}
+        onDownload={downloadFile}
+      />
     </div>
   )
 } 
