@@ -1,5 +1,6 @@
 import React from 'react'
 import { PersonPlus, PersonXFill, PersonCheckFill, Inbox, Check2Circle, XCircle } from 'react-bootstrap-icons'
+import styles from './FriendDropdown.module.scss'
 
 export default function FriendDropdown({
   show,
@@ -20,28 +21,17 @@ export default function FriendDropdown({
 }) {
   if (!show) return null
   return (
-    <div style={{
-      position: 'absolute',
-      right: 0,
-      top: '120%',
-      minWidth: '340px',
-      background: 'white',
-      boxShadow: '0 2px 16px rgba(0,0,0,0.15)',
-      borderRadius: 8,
-      zIndex: 1000,
-      maxHeight: '60vh',
-      overflow: 'hidden',
-    }}>
+    <div className={styles.dropdownWrapper}>
       <div className="border-bottom px-3 py-2 fw-bold d-flex justify-content-between align-items-center">
         <span>Quản lý bạn bè</span>
         <button className="btn btn-sm btn-light" onClick={onClose}>×</button>
       </div>
-      <div className="d-flex border-bottom px-2 gap-2 pb-1 pt-2">
+      <div className={`d-flex border-bottom px-2 pb-1 pt-2 ${styles.tabs}`}>
         <button className={`btn btn-sm d-flex align-items-center gap-1 ${friendTab==='blocked'?'btn-primary':'btn-light'}`} onClick={()=>setFriendTab('blocked')}><PersonXFill size={16}/>Đã chặn</button>
         <button className={`btn btn-sm d-flex align-items-center gap-1 ${friendTab==='invited'?'btn-primary':'btn-light'}`} onClick={()=>setFriendTab('invited')}><PersonCheckFill size={16}/>Đã mời</button>
         <button className={`btn btn-sm d-flex align-items-center gap-1 ${friendTab==='received'?'btn-primary':'btn-light'}`} onClick={()=>setFriendTab('received')}><Inbox size={16}/>Lời mời</button>
       </div>
-      <div className="notification-dropdown-scroll" style={{maxHeight:'50vh',overflowY:'auto'}}>
+      <div className={styles.friendList}>
         {friendTab==='blocked' && (
           friendBlocked.length === 0 ? <div className="text-center text-muted py-4">Không có ai bị chặn</div> :
           friendBlocked.map(f => (

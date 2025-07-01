@@ -1,0 +1,14 @@
+.mainWrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #f0f2f5;
+}
+
+.flexGrow {
+  flex-grow: 1;
+}
+
+.overflowHidden {
+  overflow: hidden;
+} 

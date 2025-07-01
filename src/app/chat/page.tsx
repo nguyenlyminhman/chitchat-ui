@@ -11,10 +11,11 @@ import ChatRightDrawer from '@/components/ChatRightDrawer'
 import ImageModalCarousel from '@/components/ImageModalCarousel'
 import FileModal from '@/components/FileModal'
 import { Bell, PersonPlus, Inbox, EnvelopeOpen, Envelope, PeopleFill, PersonXFill, PersonCheckFill, Check2Circle, XCircle, Search } from 'react-bootstrap-icons'
-import NotificationDropdown from '../../components/NotificationDropdown'
-import SuggestDropdown from '../../components/SuggestDropdown'
-import FriendDropdown from '../../components/FriendDropdown'
-import SearchDropdown from '../../components/SearchDropdown'
+import NotificationDropdown from '@/components/NotificationDropdown/NotificationDropdown'
+import SuggestDropdown from '@/components/SuggestDropdown/SuggestDropdown'
+import FriendDropdown from '@/components/FriendDropdown/FriendDropdown'
+import SearchDropdown from '@/components/SearchDropdown/SearchDropdown'
+import styles from './page.module.scss'
 
 export interface Message {
   id: string
@@ -333,7 +334,7 @@ export default function ChatPage() {
   }, [searchText, messages])
 
   return (
-    <div className="d-flex flex-column vh-100" style={{ background: '#f0f2f5' }}>
+    <div className={styles.mainWrapper}>
       <Navbar bg="white" variant="light" className="px-3 shadow-sm">
         <Container fluid>
           <Navbar.Brand className="fw-bold text-primary">ChitChat</Navbar.Brand>
@@ -437,7 +438,7 @@ export default function ChatPage() {
         </Container>
       </Navbar>
 
-      <div className="d-flex flex-grow-1 overflow-hidden">
+      <div className={`d-flex ${styles.flexGrow} ${styles.overflowHidden}`}>
         {/* Online Users Sidebar */}
         <OnlineUsersSidebar 
           onlineUsers={onlineUsers} 
@@ -445,7 +446,7 @@ export default function ChatPage() {
           onUserSelect={handleUserSelect} 
         />
         {/* Chat Area */}
-        <Container fluid className="flex-grow-1 d-flex flex-column py-3">
+        <Container fluid className={`flex-grow-1 d-flex flex-column py-3`}>
           {selectedUser ? (
             <>
               {/* Chat Header */}

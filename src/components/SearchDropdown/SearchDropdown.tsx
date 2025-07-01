@@ -1,4 +1,5 @@
 import React from 'react'
+import styles from './SearchDropdown.module.scss'
 
 export default function SearchDropdown({
   show,
@@ -15,18 +16,7 @@ export default function SearchDropdown({
 }) {
   if (!show) return null
   return (
-    <div style={{
-      position: 'absolute',
-      right: 0,
-      top: '120%',
-      minWidth: '340px',
-      background: 'white',
-      boxShadow: '0 2px 16px rgba(0,0,0,0.15)',
-      borderRadius: 8,
-      zIndex: 1000,
-      maxHeight: '60vh',
-      overflow: 'hidden',
-    }}>
+    <div className={styles.dropdownWrapper}>
       <div className="border-bottom px-3 py-2 fw-bold d-flex justify-content-between align-items-center">
         <span>Tìm kiếm tin nhắn</span>
         <button className="btn btn-sm btn-light" onClick={onClose}>×</button>
@@ -41,7 +31,7 @@ export default function SearchDropdown({
           autoFocus
         />
       </div>
-      <div className="notification-dropdown-scroll" style={{maxHeight:'40vh',overflowY:'auto'}}>
+      <div className={styles.searchList}>
         {searchText.trim() === '' ? (
           <div className="text-center text-muted py-4">Nhập từ khóa để tìm kiếm</div>
         ) : searchResults.length === 0 ? (

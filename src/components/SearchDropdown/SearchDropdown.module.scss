@@ -1,0 +1,17 @@
+.dropdownWrapper {
+  position: absolute;
+  right: 0;
+  top: 120%;
+  min-width: 340px;
+  background: white;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+  border-radius: 8px;
+  z-index: 1000;
+  max-height: 60vh;
+  overflow: hidden;
+}
+
+.searchList {
+  max-height: 40vh;
+  overflow-y: auto;
+} 

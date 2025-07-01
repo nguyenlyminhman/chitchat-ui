@@ -1,0 +1,40 @@
+.dropdownWrapper {
+  position: absolute;
+  right: 0;
+  top: 120%;
+  min-width: 340px;
+  background: white;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+  border-radius: 8px;
+  z-index: 1000;
+  max-height: 60vh;
+  overflow: hidden;
+}
+
+.notificationList {
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.closeBtn {
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 0 8px;
+}
+
+.unreadDot {
+  width: 8px;
+  height: 8px;
+  background: #4caf50;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.notificationItem {
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+}
+
+.tabs {
+  gap: 0.5rem;
+} 

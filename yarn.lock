@@ -106,6 +106,35 @@
   resolved "https://registry.npmjs.org/@nolyfill/is-core-module/-/is-core-module-1.0.39.tgz"
   integrity sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==
 
+"@parcel/watcher-linux-x64-glibc@2.5.1":
+  version "2.5.1"
+  resolved "https://registry.npmjs.org/@parcel/watcher-linux-x64-glibc/-/watcher-linux-x64-glibc-2.5.1.tgz"
+  integrity sha512-GcESn8NZySmfwlTsIur+49yDqSny2IhPeZfXunQi48DMugKeZ7uy1FX83pO0X22sHntJ4Ub+9k34XQCX+oHt2A==
+
+"@parcel/watcher@^2.4.1":
+  version "2.5.1"
+  resolved "https://registry.npmjs.org/@parcel/watcher/-/watcher-2.5.1.tgz"
+  integrity sha512-dfUnCxiN9H4ap84DvD2ubjw+3vUNpstxa0TneY/Paat8a3R4uQZDLSvWjmznAY/DoahqTHl9V46HF/Zs3F29pg==
+  dependencies:
+    detect-libc "^1.0.3"
+    is-glob "^4.0.3"
+    micromatch "^4.0.5"
+    node-addon-api "^7.0.0"
+  optionalDependencies:
+    "@parcel/watcher-android-arm64" "2.5.1"
+    "@parcel/watcher-darwin-arm64" "2.5.1"
+    "@parcel/watcher-darwin-x64" "2.5.1"
+    "@parcel/watcher-freebsd-x64" "2.5.1"
+    "@parcel/watcher-linux-arm-glibc" "2.5.1"
+    "@parcel/watcher-linux-arm-musl" "2.5.1"
+    "@parcel/watcher-linux-arm64-glibc" "2.5.1"
+    "@parcel/watcher-linux-arm64-musl" "2.5.1"
+    "@parcel/watcher-linux-x64-glibc" "2.5.1"
+    "@parcel/watcher-linux-x64-musl" "2.5.1"
+    "@parcel/watcher-win32-arm64" "2.5.1"
+    "@parcel/watcher-win32-ia32" "2.5.1"
+    "@parcel/watcher-win32-x64" "2.5.1"
+
 "@popperjs/core@^2.11.8":
   version "2.11.8"
   resolved "https://registry.npmjs.org/@popperjs/core/-/core-2.11.8.tgz"
@@ -546,6 +575,13 @@ chalk@^4.0.0:
     ansi-styles "^4.1.0"
     supports-color "^7.1.0"
 
+chokidar@^4.0.0:
+  version "4.0.3"
+  resolved "https://registry.npmjs.org/chokidar/-/chokidar-4.0.3.tgz"
+  integrity sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==
+  dependencies:
+    readdirp "^4.0.1"
+
 classnames@^2.3.2:
   version "2.5.1"
   resolved "https://registry.npmjs.org/classnames/-/classnames-2.5.1.tgz"
@@ -691,6 +727,11 @@ dequal@^2.0.3:
   version "2.0.3"
   resolved "https://registry.npmjs.org/dequal/-/dequal-2.0.3.tgz"
   integrity sha512-0je+qPKHEMohvfRTCEo3CrPG6cAzAYgmzKyxRiYSSDkS6eGJdyVJm7WaYA5ECaAD9wLB2T4EEeymA5aFVcYXCA==
+
+detect-libc@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.npmjs.org/detect-libc/-/detect-libc-1.0.3.tgz"
+  integrity sha512-pGjwhsmsp4kL2RTz08wcOlGN83otlqHeD/Z5T8GXZB+/YcpQ/dgo+lbU8ZsGxV0HIvqqxo9l7mqYwyYMD9bKDg==
 
 dir-glob@^3.0.1:
   version "3.0.1"
@@ -1391,6 +1432,11 @@ ignore@^5.2.0:
   resolved "https://registry.npmjs.org/ignore/-/ignore-5.3.2.tgz"
   integrity sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g==
 
+immutable@^5.0.2:
+  version "5.1.3"
+  resolved "https://registry.npmjs.org/immutable/-/immutable-5.1.3.tgz"
+  integrity sha512-+chQdDfvscSF1SJqv2gn4SRO2ZyS3xL3r7IW/wWEEzrzLisnOlKiQu5ytC/BVNcS15C39WT2Hg/bjKjDMcu+zg==
+
 import-fresh@^3.2.1:
   version "3.3.1"
   resolved "https://registry.npmjs.org/import-fresh/-/import-fresh-3.3.1.tgz"
@@ -1764,7 +1810,7 @@ merge2@^1.3.0, merge2@^1.4.1:
   resolved "https://registry.npmjs.org/merge2/-/merge2-1.4.1.tgz"
   integrity sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==
 
-micromatch@^4.0.8:
+micromatch@^4.0.5, micromatch@^4.0.8:
   version "4.0.8"
   resolved "https://registry.npmjs.org/micromatch/-/micromatch-4.0.8.tgz"
   integrity sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==
@@ -1845,6 +1891,11 @@ next@^14.2.29:
     "@next/swc-win32-arm64-msvc" "14.2.29"
     "@next/swc-win32-ia32-msvc" "14.2.29"
     "@next/swc-win32-x64-msvc" "14.2.29"
+
+node-addon-api@^7.0.0:
+  version "7.1.1"
+  resolved "https://registry.npmjs.org/node-addon-api/-/node-addon-api-7.1.1.tgz"
+  integrity sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ==
 
 object-assign@^4.1.1:
   version "4.1.1"
@@ -2128,6 +2179,11 @@ react@^18:
   dependencies:
     loose-envify "^1.1.0"
 
+readdirp@^4.0.1:
+  version "4.1.2"
+  resolved "https://registry.npmjs.org/readdirp/-/readdirp-4.1.2.tgz"
+  integrity sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg==
+
 reflect.getprototypeof@^1.0.6, reflect.getprototypeof@^1.0.9:
   version "1.0.10"
   resolved "https://registry.npmjs.org/reflect.getprototypeof/-/reflect.getprototypeof-1.0.10.tgz"
@@ -2228,6 +2284,17 @@ safe-regex-test@^1.0.3, safe-regex-test@^1.1.0:
     call-bound "^1.0.2"
     es-errors "^1.3.0"
     is-regex "^1.2.1"
+
+sass@^1.89.2:
+  version "1.89.2"
+  resolved "https://registry.npmjs.org/sass/-/sass-1.89.2.tgz"
+  integrity sha512-xCmtksBKd/jdJ9Bt9p7nPKiuqrlBMBuuGkQlkhZjjQk3Ty48lv93k5Dq6OPkKt4XwxDJ7tvlfrTa1MPA9bf+QA==
+  dependencies:
+    chokidar "^4.0.0"
+    immutable "^5.0.2"
+    source-map-js ">=0.6.2 <2.0.0"
+  optionalDependencies:
+    "@parcel/watcher" "^2.4.1"
 
 scheduler@^0.23.2:
   version "0.23.2"
@@ -2352,7 +2419,7 @@ socket.io-parser@~4.2.4:
     "@socket.io/component-emitter" "~3.1.0"
     debug "~4.3.1"
 
-source-map-js@^1.0.2:
+source-map-js@^1.0.2, "source-map-js@>=0.6.2 <2.0.0":
   version "1.2.1"
   resolved "https://registry.npmjs.org/source-map-js/-/source-map-js-1.2.1.tgz"
   integrity sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==
