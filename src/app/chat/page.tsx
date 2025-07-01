@@ -362,7 +362,7 @@ export default function ChatPage() {
                   borderRadius: 8,
                   zIndex: 1000,
                   maxHeight: '60vh',
-                  overflowY: 'auto',
+                  overflow: 'hidden',
                 }}>
                   <div className="border-bottom px-3 py-2 fw-bold">Thông báo</div>
                   {/* Tabs */}
