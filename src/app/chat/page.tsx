@@ -11,6 +11,10 @@ import ChatRightDrawer from '@/components/ChatRightDrawer'
 import ImageModalCarousel from '@/components/ImageModalCarousel'
 import FileModal from '@/components/FileModal'
 import { Bell, PersonPlus, Inbox, EnvelopeOpen, Envelope, PeopleFill, PersonXFill, PersonCheckFill, Check2Circle, XCircle, Search } from 'react-bootstrap-icons'
+import NotificationDropdown from '../../components/NotificationDropdown'
+import SuggestDropdown from '../../components/SuggestDropdown'
+import FriendDropdown from '../../components/FriendDropdown'
+import SearchDropdown from '../../components/SearchDropdown'
 
 export interface Message {
   id: string
@@ -351,52 +355,17 @@ export default function ChatPage() {
                   lineHeight: 1
                 }}>{notifications.filter(n => !n.read).length}</span>
               </div>
-              {showNotificationList && (
-                <div style={{
-                  position: 'absolute',
-                  right: 0,
-                  top: '120%',
-                  minWidth: '340px',
-                  background: 'white',
-                  boxShadow: '0 2px 16px rgba(0,0,0,0.15)',
-                  borderRadius: 8,
-                  zIndex: 1000,
-                  maxHeight: '60vh',
-                  overflow: 'hidden',
-                }}>
-                  <div className="border-bottom px-3 py-2 fw-bold">Thông báo</div>
-                  {/* Tabs */}
-                  <div className="d-flex border-bottom px-2 gap-2 pb-1 pt-2">
-                    <button className={`btn btn-sm d-flex align-items-center gap-1 ${notificationTab==='all'?'btn-primary':'btn-light'}`} onClick={()=>setNotificationTab('all')}><Inbox size={16}/>Tất cả</button>
-                    <button className={`btn btn-sm d-flex align-items-center gap-1 ${notificationTab==='unread'?'btn-primary':'btn-light'}`} onClick={()=>setNotificationTab('unread')}><Envelope size={16}/>Chưa đọc</button>
-                    <button className={`btn btn-sm d-flex align-items-center gap-1 ${notificationTab==='read'?'btn-primary':'btn-light'}`} onClick={()=>setNotificationTab('read')}><EnvelopeOpen size={16}/>Đã đọc</button>
-                  </div>
-                  <div ref={notificationListDiv} className="notification-dropdown-scroll" style={{
-                    maxHeight:'50vh',
-                    overflowY:'auto',
-                  }}>
-                    {shownNotifications.length === 0 ? (
-                      <div className="text-center text-muted py-4">Không có thông báo</div>
-                    ) : shownNotifications.map(n => (
-                      <div
-                        key={n.id}
-                        className={`px-3 py-2 d-flex align-items-center gap-2 ${!n.read ? 'bg-light' : ''}`}
-                        style={{ borderBottom: '1px solid #f0f0f0', cursor: 'pointer' }}
-                        onClick={()=>handleNotificationClick(n)}
-                      >
-                        {!n.read && <span style={{ width: 8, height: 8, background: '#4caf50', borderRadius: '50%', display: 'inline-block' }} />}
-                        <div className="flex-grow-1">
-                          <div style={{ fontWeight: !n.read ? 600 : 400 }}>{n.content}</div>
-                          <div className="small text-muted">{n.time}</div>
-                        </div>
-                      </div>
-                    ))}
-                    {shownNotifications.length < filteredNotifications.length && (
-                      <div className="text-center text-muted py-2 small">Đang tải thêm...</div>
-                    )}
-                  </div>
-                </div>
-              )}
+              <NotificationDropdown
+                show={showNotificationList}
+                notifications={notifications}
+                notificationTab={notificationTab}
+                setNotificationTab={(tab: 'all' | 'unread' | 'read') => setNotificationTab(tab)}
+                shownNotifications={shownNotifications}
+                filteredNotifications={filteredNotifications}
+                notificationListDiv={notificationListDiv}
+                handleNotificationClick={handleNotificationClick}
+                onClose={() => setShowNotificationList(false)}
+              />
             </div>
             {/* Friend Suggestion Icon */}
             <div ref={suggestRef} style={{ position: 'relative', cursor: 'pointer' }}>
@@ -415,36 +384,11 @@ export default function ChatPage() {
                   lineHeight: 1
                 }}>{friendSuggestions.length}</span>
               </div>
-              {showSuggestList && (
-                <div style={{
-                  position: 'absolute',
-                  right: 0,
-                  top: '120%',
-                  minWidth: '340px',
-                  background: 'white',
-                  boxShadow: '0 2px 16px rgba(0,0,0,0.15)',
-                  borderRadius: 8,
-                  zIndex: 1000,
-                  maxHeight: '60vh',
-                  overflow: 'hidden',
-                }}>
-                  <div className="border-bottom px-3 py-2 fw-bold">Gợi ý kết bạn</div>
-                  <div className="notification-dropdown-scroll" style={{maxHeight:'50vh',overflowY:'auto'}}>
-                    {friendSuggestions.length === 0 ? <div className="text-center text-muted py-4">Không có gợi ý</div> :
-                      friendSuggestions.map(f => (
-                        <div key={f.id} className="px-3 py-2 d-flex align-items-center gap-2 border-bottom">
-                          <PeopleFill size={20} className="text-primary"/>
-                          <div className="flex-grow-1">
-                            <div className="fw-bold">{f.name}</div>
-                            <div className="small text-muted">{f.mutual} bạn chung</div>
-                          </div>
-                          <button className="btn btn-sm btn-outline-primary">Kết bạn</button>
-                        </div>
-                      ))
-                    }
-                  </div>
-                </div>
-              )}
+              <SuggestDropdown
+                show={showSuggestList}
+                friendSuggestions={friendSuggestions}
+                onClose={() => setShowSuggestList(false)}
+              />
             </div>
             {/* Friend Request Icon (now Friend Management) */}
             <div ref={friendRequestRef} style={{ position: 'relative', cursor: 'pointer' }}>
@@ -463,112 +407,28 @@ export default function ChatPage() {
                   lineHeight: 1
                 }}>{friendInvited.length + friendBlocked.length}</span>
               </div>
-              {showFriendRequestList && (
-                <div style={{
-                  position: 'absolute',
-                  right: 0,
-                  top: '120%',
-                  minWidth: '340px',
-                  background: 'white',
-                  boxShadow: '0 2px 16px rgba(0,0,0,0.15)',
-                  borderRadius: 8,
-                  zIndex: 1000,
-                  maxHeight: '60vh',
-                  overflow: 'hidden',
-                }}>
-                  <div className="border-bottom px-3 py-2 fw-bold">Quản lý bạn bè</div>
-                  {/* Tabs */}
-                  <div className="d-flex border-bottom px-2 gap-2 pb-1 pt-2">
-                    <button className={`btn btn-sm d-flex align-items-center gap-1 ${friendTab==='blocked'?'btn-primary':'btn-light'}`} onClick={()=>setFriendTab('blocked')}><PersonXFill size={16}/>Đã chặn</button>
-                    <button className={`btn btn-sm d-flex align-items-center gap-1 ${friendTab==='invited'?'btn-primary':'btn-light'}`} onClick={()=>setFriendTab('invited')}><PersonCheckFill size={16}/>Đã mời</button>
-                    <button className={`btn btn-sm d-flex align-items-center gap-1 ${friendTab==='received'?'btn-primary':'btn-light'}`} onClick={()=>setFriendTab('received')}><Inbox size={16}/>Lời mời</button>
-                  </div>
-                  <div className="notification-dropdown-scroll" style={{maxHeight:'50vh',overflowY:'auto'}}>
-                    {friendTab==='blocked' && (
-                      friendBlocked.length === 0 ? <div className="text-center text-muted py-4">Không có ai bị chặn</div> :
-                      friendBlocked.map(f => (
-                        <div key={f.id} className="px-3 py-2 d-flex align-items-center gap-2 border-bottom">
-                          <PersonXFill size={20} className="text-danger"/>
-                          <div className="flex-grow-1">
-                            <div className="fw-bold">{f.name}</div>
-                          </div>
-                          <button className="btn btn-sm btn-outline-secondary">Bỏ chặn</button>
-                        </div>
-                      ))
-                    )}
-                    {friendTab==='invited' && (
-                      friendInvited.length === 0 ? <div className="text-center text-muted py-4">Chưa gửi lời mời nào</div> :
-                      friendInvited.map(f => (
-                        <div key={f.id} className="px-3 py-2 d-flex align-items-center gap-2 border-bottom">
-                          <PersonCheckFill size={20} className="text-success"/>
-                          <div className="flex-grow-1">
-                            <div className="fw-bold">{f.name}</div>
-                          </div>
-                          <button className="btn btn-sm btn-outline-secondary">Thu hồi</button>
-                        </div>
-                      ))
-                    )}
-                    {friendTab==='received' && (
-                      friendReceived.length === 0 ? <div className="text-center text-muted py-4">Không có lời mời nào</div> :
-                      friendReceived.map(f => (
-                        <div key={f.id} className="px-3 py-2 d-flex align-items-center gap-2 border-bottom">
-                          <Inbox size={20} className="text-warning"/>
-                          <div className="flex-grow-1">
-                            <div className="fw-bold">{f.name}</div>
-                          </div>
-                          <Check2Circle size={24} className="text-success me-2" style={{cursor:'pointer'}} title="Chấp nhận" />
-                          <XCircle size={24} className="text-danger" style={{cursor:'pointer'}} title="Từ chối" />
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
+              <FriendDropdown
+                show={showFriendRequestList}
+                friendTab={friendTab}
+                setFriendTab={setFriendTab}
+                friendBlocked={friendBlocked}
+                friendInvited={friendInvited}
+                friendReceived={friendReceived}
+                onClose={() => setShowFriendRequestList(false)}
+              />
             </div>
             {/* Search Icon */}
             <div ref={searchRef} style={{ position: 'relative', cursor: 'pointer' }}>
               <div title="Tìm kiếm tin nhắn" onClick={() => { setShowSearch(v => !v); setShowNotificationList(false); setShowFriendRequestList(false); setShowSuggestList(false) }}>
                 <Search size={22} />
               </div>
-              {showSearch && (
-                <div style={{
-                  position: 'absolute',
-                  right: 0,
-                  top: '120%',
-                  minWidth: '340px',
-                  background: 'white',
-                  boxShadow: '0 2px 16px rgba(0,0,0,0.15)',
-                  borderRadius: 8,
-                  zIndex: 1000,
-                  maxHeight: '60vh',
-                  overflow: 'hidden',
-                }}>
-                  <div className="border-bottom px-3 py-2 fw-bold">Tìm kiếm tin nhắn</div>
-                  <div className="p-2 border-bottom">
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Nhập nội dung tin nhắn..."
-                      value={searchText}
-                      onChange={e => setSearchText(e.target.value)}
-                      autoFocus
-                    />
-                  </div>
-                  <div className="notification-dropdown-scroll" style={{maxHeight:'40vh',overflowY:'auto'}}>
-                    {searchText.trim() === '' ? (
-                      <div className="text-center text-muted py-4">Nhập từ khóa để tìm kiếm</div>
-                    ) : searchResults.length === 0 ? (
-                      <div className="text-center text-muted py-4">Không tìm thấy tin nhắn phù hợp</div>
-                    ) : searchResults.map(m => (
-                      <div key={m.id} className="px-3 py-2 border-bottom">
-                        <div className="fw-bold">{m.sender}</div>
-                        <div>{m.content}</div>
-                        <div className="small text-muted">{m.timestamp.toLocaleString()}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <SearchDropdown
+                show={showSearch}
+                searchText={searchText}
+                setSearchText={setSearchText}
+                searchResults={searchResults}
+                onClose={() => setShowSearch(false)}
+              />
             </div>
             <Button variant="outline-primary" onClick={logout}>
               Logout
