@@ -1,30 +1,41 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Container, Form, Button, Alert, Card } from 'react-bootstrap'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { loginStart, loginSuccess, loginFailure } from '@/store/slices/authSlice'
+import { fetchUsers, ae } from '@/store/slices/usersSlice';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const dispatch = useAppDispatch()
+  const { loading, error } = useAppSelector((state) => state.auth)
+  const { data } = useAppSelector((state) => state.users)
   const { login } = useAuth()
   const router = useRouter()
 
+
+  console.log('fetchUsers', data);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
-    setError('')
+    dispatch(loginStart())
+
 
     try {
       await login(email, password)
+      const userData = {
+        id: '1',
+        username: email.split('@')[0],
+        email: email
+      }
+      dispatch(loginSuccess(userData))
       router.push('/chat')
     } catch (error) {
-      setError('Invalid email or password')
-    } finally {
-      setIsLoading(false)
+      dispatch(loginFailure('Invalid email or password'))
     }
   }
 
@@ -73,9 +84,9 @@ export default function LoginPage() {
                     variant="primary"
                     type="submit"
                     className="w-100 py-2 mb-4"
-                    disabled={isLoading}
+                    disabled={loading}
                   >
-                    {isLoading ? 'Signing in...' : 'Sign In'}
+                    {loading ? 'Signing in...' : 'Sign In'}
                   </Button>
 
                   <div className="text-center">

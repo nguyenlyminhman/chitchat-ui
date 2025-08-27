@@ -1,55 +1,43 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Container, Button, Card, Navbar, Nav } from 'react-bootstrap'
+import { Container, Form, Button, Card, Navbar, Nav, Image, Modal, Carousel } from 'react-bootstrap'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { 
+  setSelectedUser, 
+  addMessage, 
+  setMessages,
+  setOnlineUsers,
+  addOnlineUser,
+  removeOnlineUser 
+} from '@/store/slices/chatSlice'
+import { 
+  addNotification, 
+  markAsRead,
+  markAllAsRead 
+} from '@/store/slices/notificationSlice'
+import { 
+  addSuggestion, 
+  removeSuggestion,
+  addBlockedUser,
+  removeBlockedUser 
+} from '@/store/slices/friendSlice'
 import OnlineUsersSidebar from '@/components/OnlineUsersSidebar'
 import ChatHeader from '@/components/ChatHeader'
 import ChatMessages from '@/components/ChatMessages'
 import ChatRightDrawer from '@/components/ChatRightDrawer'
 import ImageModalCarousel from '@/components/ImageModalCarousel'
 import FileModal from '@/components/FileModal'
-import { Bell, PersonPlus, PeopleFill, Search } from 'react-bootstrap-icons'
+import { Bell, PersonPlus, Inbox, EnvelopeOpen, Envelope, PeopleFill, PersonXFill, PersonCheckFill, Check2Circle, XCircle, Search } from 'react-bootstrap-icons'
 import NotificationDropdown from '@/components/NotificationDropdown/NotificationDropdown'
 import SuggestDropdown from '@/components/SuggestDropdown/SuggestDropdown'
 import FriendDropdown from '@/components/FriendDropdown/FriendDropdown'
 import SearchDropdown from '@/components/SearchDropdown/SearchDropdown'
 import styles from './page.module.scss'
 
-export interface Message {
-  id: string
-  content: string
-  sender: string
-  timestamp: Date
-  type: 'text' | 'image' | 'file' | 'multiple'
-  fileUrl?: string
-  fileName?: string
-  fileSize?: number
-  files?: Array<{
-    url: string
-    name: string
-    size: number
-    type: string
-  }>
-}
-
-export interface OnlineUser {
-  id: string
-  username: string
-  lastSeen: Date
-}
-
-export interface Notification {
-  id: string
-  content: string
-  time: string
-  read: boolean
-  userId: string
-}
-
-export default function ChatPage() {
-  const [messages, setMessages] = useState<Message[]>([])
+export default function ChatPageWithRedux() {
   const [newMessage, setNewMessage] = useState('')
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [showImageModal, setShowImageModal] = useState(false)
@@ -57,13 +45,6 @@ export default function ChatPage() {
   const [selectedImages, setSelectedImages] = useState<string[]>([])
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [selectedFileData, setSelectedFileData] = useState<{ name: string; size: number; url: string } | null>(null)
-  const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([
-    { id: '1', username: 'John Doe', lastSeen: new Date() },
-    { id: '2', username: 'Jane Smith', lastSeen: new Date() },
-    { id: '3', username: 'Mike Johnson', lastSeen: new Date() },
-    { id: '4', username: 'Sarah Williams', lastSeen: new Date() },
-  ])
-  const [selectedUser, setSelectedUser] = useState<OnlineUser | null>(null)
   const [showRightDrawer, setShowRightDrawer] = useState(false)
   const [activeTab, setActiveTab] = useState('images')
   const { user, logout } = useAuth()
@@ -76,26 +57,19 @@ export default function ChatPage() {
   const [notificationTab, setNotificationTab] = useState<'all' | 'unread' | 'read'>('all')
   const [notificationPage, setNotificationPage] = useState(1)
   const NOTIFICATIONS_PER_PAGE = 10
-  const [notifications, setNotifications] = useState<Notification[]>([
-    { id: '1', content: 'Tin nhắn mới từ John Doe', time: '2 phút trước', read: false, userId: '1' },
-    { id: '2', content: 'Tin nhắn mới từ Jane Smith', time: '10 phút trước', read: true, userId: '2' },
-    { id: '3', content: 'Tin nhắn mới từ Mike Johnson', time: '1 giờ trước', read: false, userId: '3' },
-    // ... thêm nhiều thông báo mẫu để test scroll ...
-    ...Array.from({ length: 25 }, (_, i) => ({
-      id: (4 + i).toString(),
-      content: `Thông báo mẫu ${i + 4}`,
-      time: `${i + 4} phút trước`,
-      read: i % 2 === 0,
-      userId: ((i % 4) + 1).toString(),
-    }))
-  ])
   const notificationRef = useRef<HTMLDivElement>(null)
   const friendRequestRef = useRef<HTMLDivElement>(null)
   const suggestRef = useRef<HTMLDivElement>(null)
   const [showSearch, setShowSearch] = useState(false)
   const [searchText, setSearchText] = useState('')
-  const [searchResults, setSearchResults] = useState<Message[]>([])
+  const [searchResults, setSearchResults] = useState<any[]>([])
   const searchRef = useRef<HTMLDivElement>(null)
+
+  // Redux hooks
+  const dispatch = useAppDispatch()
+  const { messages, selectedUser, onlineUsers } = useAppSelector((state) => state.chat)
+  const { notifications } = useAppSelector((state) => state.notification)
+  const { suggestions, blocked, invited, received } = useAppSelector((state) => state.friend)
 
   useEffect(() => {
     if (!user) {
@@ -114,7 +88,7 @@ export default function ChatPage() {
   const handleSendMessage = () => {
     if ((!newMessage.trim() && selectedFiles.length === 0) || !selectedUser) return
 
-    let message: Message
+    let message: any
 
     if (selectedFiles.length > 0) {
       if (selectedFiles.length === 1) {
@@ -160,7 +134,8 @@ export default function ChatPage() {
       }
     }
 
-    setMessages((prev) => [...prev, message])
+    // Dispatch to Redux
+    dispatch(addMessage(message))
     setNewMessage('')
   }
 
@@ -171,8 +146,8 @@ export default function ChatPage() {
     }
   }
 
-  const handleUserSelect = (user: OnlineUser) => {
-    setSelectedUser(user)
+  const handleUserSelect = (user: any) => {
+    dispatch(setSelectedUser(user))
   }
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -275,53 +250,18 @@ export default function ChatPage() {
   useEffect(() => { setNotificationPage(1) }, [notificationTab, showNotificationList])
 
   // Click vào thông báo chưa đọc: đánh dấu đã đọc và chuyển đến user
-  const handleNotificationClick = (n: Notification) => {
+  const handleNotificationClick = (n: any) => {
     if (!n.read) {
-      setNotifications(prev => prev.map(item => item.id === n.id ? { ...item, read: true } : item))
+      dispatch(markAsRead(n.id))
     }
     // Chuyển đến chat với user (giả lập)
     const user = onlineUsers.find(u => u.id === n.userId)
-    if (user) setSelectedUser(user)
+    if (user) dispatch(setSelectedUser(user))
     setShowNotificationList(false)
   }
 
   // Friend request tabs and data
   const [friendTab, setFriendTab] = useState<'blocked'|'invited'|'received'>('blocked')
-  const friendSuggestions = [
-    { id: '1', name: 'Alice', mutual: 2 },
-    { id: '2', name: 'Bob', mutual: 1 },
-    { id: '3', name: 'Charlie', mutual: 0 },
-    ...Array.from({ length: 20 }, (_, i) => ({
-      id: (4 + i).toString(),
-      name: `Friend Suggestion ${i + 4}`,
-      mutual: i % 5,
-    }))
-  ]
-  const friendBlocked = [
-    { id: '4', name: 'Eve' },
-    { id: '5', name: 'Mallory' },
-    ...Array.from({ length: 12 }, (_, i) => ({
-      id: (6 + i).toString(),
-      name: `Blocked User ${i + 6}`
-    }))
-  ]
-  const friendInvited = [
-    { id: '6', name: 'Trent' },
-    { id: '7', name: 'Oscar' },
-    ...Array.from({ length: 15 }, (_, i) => ({
-      id: (8 + i).toString(),
-      name: `Invited User ${i + 8}`
-    }))
-  ]
-  const friendReceived = [
-    { id: '100', name: 'User Request 1' },
-    { id: '101', name: 'User Request 2' },
-    { id: '102', name: 'User Request 3' },
-    ...Array.from({ length: 8 }, (_, i) => ({
-      id: (110 + i).toString(),
-      name: `User Request ${i + 4}`
-    }))
-  ]
 
   useEffect(() => {
     if (searchText.trim() === '') {
@@ -337,7 +277,7 @@ export default function ChatPage() {
     <div className={styles.mainWrapper}>
       <Navbar bg="white" variant="light" className="px-3 shadow-sm">
         <Container fluid>
-          <Navbar.Brand className="fw-bold text-primary">ChitChat</Navbar.Brand>
+          <Navbar.Brand className="fw-bold text-primary">ChitChat (Redux)</Navbar.Brand>
           <Nav className="ms-auto align-items-center gap-3">
             {/* Notification Icon */}
             <div ref={notificationRef} style={{ position: 'relative', cursor: 'pointer' }}>
@@ -383,11 +323,11 @@ export default function ChatPage() {
                   padding: '2px 6px',
                   fontWeight: 600,
                   lineHeight: 1
-                }}>{friendSuggestions.length}</span>
+                }}>{suggestions.length}</span>
               </div>
               <SuggestDropdown
                 show={showSuggestList}
-                friendSuggestions={friendSuggestions}
+                friendSuggestions={suggestions}
                 onClose={() => setShowSuggestList(false)}
               />
             </div>
@@ -406,15 +346,15 @@ export default function ChatPage() {
                   padding: '2px 6px',
                   fontWeight: 600,
                   lineHeight: 1
-                }}>{friendInvited.length + friendBlocked.length}</span>
+                }}>{invited.length + blocked.length}</span>
               </div>
               <FriendDropdown
                 show={showFriendRequestList}
                 friendTab={friendTab}
                 setFriendTab={setFriendTab}
-                friendBlocked={friendBlocked}
-                friendInvited={friendInvited}
-                friendReceived={friendReceived}
+                friendBlocked={blocked}
+                friendInvited={invited}
+                friendReceived={received}
                 onClose={() => setShowFriendRequestList(false)}
               />
             </div>

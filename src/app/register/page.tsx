@@ -1,48 +1,46 @@
 'use client'
 
-import { useState } from 'react'
 import { Container, Form, Button, Alert, Card } from 'react-bootstrap'
 import { useRouter } from 'next/navigation'
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { registerUser } from '@/store/slices/usersSlice'
+
+const validRegistrationFormSchema = Yup.object().shape({
+  username: Yup.string().required('Username is required').min(3, 'Must be at least 3 characters'),
+  email: Yup.string().required('Email is required').email('Invalid email'),
+  password: Yup.string().required('Password is required').min(3, 'Must be at least 6 characters'),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref('password'), ''], 'Passwords must match')
+    .required('Confirm password is required'),
+});
 
 export default function RegisterPage() {
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  })
-  const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const dispatch = useAppDispatch()
+  const { registerLoading, registerError } = useAppSelector((state) => state.users)
   const router = useRouter()
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError('')
-
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
-      setIsLoading(false)
-      return
+  const formik = useFormik({ 
+    initialValues: {
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
+    validationSchema: validRegistrationFormSchema,
+    onSubmit: async (values, { setSubmitting }) => {
+      try {
+        const { confirmPassword, ...userData } = values
+        await dispatch(registerUser(userData)).unwrap()
+        router.push('/login')
+      } catch (e) {
+        console.error('Registration failed:', e)
+      } finally {
+        setSubmitting(false)
+      }
     }
-
-    try {
-      // TODO: Implement actual registration API call
-      router.push('/login')
-    } catch (error) {
-      setError('Registration failed. Please try again.')
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  });
 
   return (
     <div className="min-vh-100 d-flex align-items-center bg-primary bg-gradient">
@@ -56,23 +54,28 @@ export default function RegisterPage() {
                   <p className="text-muted">Join ChitChat today</p>
                 </div>
 
-                {error && (
+                {registerError && (
                   <Alert variant="danger" className="mb-4">
-                    {error}
+                    {registerError}
                   </Alert>
                 )}
 
-                <Form onSubmit={handleSubmit}>
+                <Form onSubmit={formik.handleSubmit} noValidate>
                   <Form.Group className="mb-3">
                     <Form.Label>Username</Form.Label>
                     <Form.Control
                       type="text"
                       name="username"
                       placeholder="Choose a username"
-                      value={formData.username}
-                      onChange={handleChange}
+                      value={formik.values.username}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      isInvalid={formik.touched.username && !!formik.errors.username}
                       required
                     />
+                    <Form.Control.Feedback type="invalid">
+                      {formik.errors.username as string}
+                    </Form.Control.Feedback>
                   </Form.Group>
 
                   <Form.Group className="mb-3">
@@ -81,10 +84,15 @@ export default function RegisterPage() {
                       type="email"
                       name="email"
                       placeholder="Enter your email"
-                      value={formData.email}
-                      onChange={handleChange}
+                      value={formik.values.email}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      isInvalid={formik.touched.email && !!formik.errors.email}
                       required
                     />
+                    <Form.Control.Feedback type="invalid">
+                      {formik.errors.email as string}
+                    </Form.Control.Feedback>
                   </Form.Group>
 
                   <Form.Group className="mb-3">
@@ -93,10 +101,15 @@ export default function RegisterPage() {
                       type="password"
                       name="password"
                       placeholder="Create a password"
-                      value={formData.password}
-                      onChange={handleChange}
+                      value={formik.values.password}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      isInvalid={formik.touched.password && !!formik.errors.password}
                       required
                     />
+                    <Form.Control.Feedback type="invalid">
+                      {formik.errors.password as string}
+                    </Form.Control.Feedback>
                   </Form.Group>
 
                   <Form.Group className="mb-4">
@@ -105,19 +118,24 @@ export default function RegisterPage() {
                       type="password"
                       name="confirmPassword"
                       placeholder="Confirm your password"
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
+                      value={formik.values.confirmPassword}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      isInvalid={formik.touched.confirmPassword && !!formik.errors.confirmPassword}
                       required
                     />
+                    <Form.Control.Feedback type="invalid">
+                      {formik.errors.confirmPassword as string}
+                    </Form.Control.Feedback>
                   </Form.Group>
 
                   <Button
                     variant="primary"
                     type="submit"
                     className="w-100 py-2 mb-4"
-                    disabled={isLoading}
+                    disabled={formik.isSubmitting || registerLoading}
                   >
-                    {isLoading ? 'Creating Account...' : 'Create Account'}
+                    {(formik.isSubmitting || registerLoading) ? 'Creating Account...' : 'Create Account'}
                   </Button>
 
                   <div className="text-center">

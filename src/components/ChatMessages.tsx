@@ -4,7 +4,7 @@ import type { Message, OnlineUser } from '@/app/chat/page'
 
 interface ChatMessagesProps {
   messages: Message[]
-  user: { username: string }
+  user: { username: string } | null
   newMessage: string
   setNewMessage: (msg: string) => void
   selectedFiles: File[]
